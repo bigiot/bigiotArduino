@@ -1,16 +1,15 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <aJSON.h>
-
+//=============  此处必须修该============
 String  APIKEY="770739091"; // 此处替换为你自己的API KEY
 String DEVICEID="1"; // 此处替换为你的设备编号
+//=======================================
 const int LED = 3;//
-
 byte mac[] = {0x00, 0x1D, 0x72, 0x82, 0x35, 0x9D};
 EthernetClient client ;
 IPAddress ip(192, 168, 0, 177);//local IP
-
-char server[] = "192.168.1.100";  
+char server[] = "121.42.180.30";  
 int port= 8181 ;
 
 aJsonStream serial_stream(&client);

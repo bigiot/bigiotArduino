@@ -1,17 +1,17 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <aJSON.h>
-
-const String  APIKEY="770739091"; // 此处替换为你自己的API KEY
+//=============  此处必须修该============
+const String  APIKEY="493822592"; // 此处替换为你自己的API KEY
 const String DEVICEID="1"; // 此处替换为你的设备编号
 const String INPUTID="1";
+//=======================================
 const int LM35 = 0;//LM35 pin
-
 byte mac[] = {0x00, 0x1D, 0x72, 0x82, 0x35, 0x9D};
 EthernetClient client ;
 IPAddress ip(192, 168, 0, 177);//local IP
 
-char server[] = "192.168.1.100";  
+char server[] = "121.42.180.30";  
 int port= 8181 ;
 
 aJsonStream serial_stream(&client);

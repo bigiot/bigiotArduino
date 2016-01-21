@@ -1,0 +1,5 @@
+ESP8266 Arduino调试通讯程序
+功能：Arduino通过模拟串口与ESP8266串口连接，实现通过Arduino IDE 串口监视器向ESP8266发送命令进行设置调试。
+贝壳物联 http://www.bigiot.net
+2015.12.14
+注：在串口监视发送命令是需设置回车符为：Both NL&CR
