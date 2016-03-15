@@ -17,8 +17,8 @@ int port= 8181 ;
 aJsonStream serial_stream(&client);
 unsigned long lastCheckInTime = 0; 
 unsigned long lastUpdateTime = 0; 
-const unsigned long postingInterval = 40000; // delay between 2 datapoints, 30s
-const unsigned long updateInterval = 5000; // delay between 2 datapoints, 30s
+const unsigned long postingInterval = 40000; // delay between 2 datapoints, 40s
+const unsigned long updateInterval = 5000; // delay between 2 datapoints, 5s
 boolean isCheckIn = false;
 
 void setup() {
@@ -50,7 +50,7 @@ void loop() {
     dat=analogRead( LM35 );// 读取传感器的模拟值并赋值给dat
     //val=(125*dat)>>8;//温度计算公式
     val = dat * (4.76 / 1023.0*100);  
-    update(DEVICEID,INPUTID,val);
+    update1(DEVICEID,INPUTID,val);
   }
  if (serial_stream.available()) {
     /* First, skip any accidental whitespace like newlines. */
@@ -99,13 +99,33 @@ void processMessage(aJsonObject *msg){
   } 
 }
 
-void update(String did, String inputid, int value){
+void update1(String did, String inputid, int value){
   client.print("{\"M\":\"update\",\"ID\":\"");
   client.print(did);
   client.print("\",\"V\":{\"");
   client.print(inputid);
   client.print("\":\"");
   client.print(value);
+  client.println("\"}}");
+  lastCheckInTime = millis();
+  lastUpdateTime= millis();
+  Serial.print("update:");   
+  Serial.print(inputid);   
+  Serial.print("->");   
+  Serial.println(value);   
+}
+//同时上传两个接口数据调用此函数
+void update2(String did, String inputid1, int value1, String inputid2, int value2){
+  client.print("{\"M\":\"update\",\"ID\":\"");
+  client.print(did);
+  client.print("\",\"V\":{\"");
+  client.print(inputid1);
+  client.print("\":\"");
+  client.print(value1);
+  client.print("\",\"");
+  client.print(inputid2);
+  client.print("\":\"");
+  client.print(value2);
   client.println("\"}}");
   lastCheckInTime = millis();
   lastUpdateTime= millis();

@@ -28,7 +28,7 @@ void loop() {
     dat=analogRead( LM35 );// 读取传感器的模拟值并赋值给dat
     //val=(125*dat)>>8;//温度计算公式
     val = dat * (4.76 / 1023.0*100);  
-    update(DEVICEID,INPUTID,val);
+    update1(DEVICEID,INPUTID,val);
   }
   serialEvent();
     if (stringComplete) {
@@ -87,7 +87,7 @@ void processMessage(aJsonObject *msg){
       isCheckIn = true;
     }
 }
-void update(String did, String inputid, float value){
+void update1(String did, String inputid, float value){
   Serial.print("{\"M\":\"update\",\"ID\":\"");
   Serial.print(did);
   Serial.print("\",\"V\":{\"");
@@ -106,4 +106,20 @@ void serialEvent() {
       stringComplete = true;
     }
   }
+}
+//同时上传两个接口数据调用此函数
+void update2(String did, String inputid1, float value1, String inputid2, float value2){
+  Serial.print("{\"M\":\"update\",\"ID\":\"");
+  Serial.print(did);
+  Serial.print("\",\"V\":{\"");
+  Serial.print(inputid1);
+  Serial.print("\":\"");
+  Serial.print(value1);
+  Serial.print("\",\"");
+  Serial.print(inputid2);
+  Serial.print("\":\"");
+  Serial.print(value2);
+  Serial.println("\"}}");
+  lastCheckInTime = millis();
+  lastUpdateTime= millis(); 
 }
