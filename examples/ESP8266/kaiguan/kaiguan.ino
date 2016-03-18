@@ -50,7 +50,7 @@ void checkIn() {
     Serial.print("AT+RST\r\n"); 
     delay(6000);
     CONNECT=true;
-    lastCheckInTime==0;
+    lastCheckInTime=0;
   }
   else{
     Serial.print("{\"M\":\"checkin\",\"ID\":\"");
