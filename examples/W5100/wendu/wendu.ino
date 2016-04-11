@@ -130,7 +130,11 @@ void update2(String did, String inputid1, int value1, String inputid2, int value
   lastCheckInTime = millis();
   lastUpdateTime= millis();
   Serial.print("update:");   
-  Serial.print(inputid);   
-  Serial.print("->");   
-  Serial.println(value);   
+  Serial.print(inputid1);   
+  Serial.print("->"); 
+  Serial.print(value1);  
+  Serial.print("："); 
+  Serial.print(inputid2);   
+  Serial.print("->"); 
+  Serial.println(value2);   
 }
