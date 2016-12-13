@@ -41,6 +41,13 @@ void checkIn() {
   Serial.print("\"}\n");
   lastCheckInTime = millis();   
 }
+void checkOut() {
+  Serial.print("{\"M\":\"checkout\",\"ID\":\"");
+  Serial.print(DEVICEID);
+  Serial.print("\",\"K\":\"");
+  Serial.print(APIKEY);
+  Serial.print("\"}\n");
+}
 void processMessage(aJsonObject *msg){
   aJsonObject* method = aJson.getObjectItem(msg, "M");
   aJsonObject* content = aJson.getObjectItem(msg, "C");     
@@ -55,6 +62,8 @@ void processMessage(aJsonObject *msg){
   String C=content->valuestring;
   String F_C_ID=client_id->valuestring;
   if(M=="WELCOME TO BIGIOT"){
+    checkOut();
+    delay(1000);
     checkIn();
   }
   if(M=="say"){
