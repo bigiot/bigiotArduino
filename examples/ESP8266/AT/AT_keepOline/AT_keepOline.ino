@@ -1,10 +1,12 @@
 #include <aJSON.h>
 //=============  此处必须修该============
-String DEVICEID="454"; // 你的设备编号   ==
-String  APIKEY="78632f873"; // 设备密码==
+String DEVICEID="xxx"; // 你的设备编号   ==
+String  APIKEY="xxxxxxxx"; // 设备密码==
 //=======================================
 unsigned long lastCheckInTime = 0; //记录上次报到时间
+unsigned long lastCheckStatusTime = 0; //记录上次报到时间
 const unsigned long postingInterval = 40000; // 每隔40秒向服务器报到一次
+const unsigned long statusInterval = 100000; // 每隔100秒检测一次在线状态
 String inputString = "";
 boolean stringComplete = false;
 char* parseJson(char *jsonString);
@@ -15,6 +17,9 @@ void setup() {
 void loop() {
   if(millis() - lastCheckInTime > postingInterval || lastCheckInTime==0) {
     checkIn();
+  }
+  if(millis() - lastCheckStatusTime > statusInterval) {
+    checkStatus();
   }
   serialEvent();
   if (stringComplete) {
@@ -48,6 +53,10 @@ void checkOut() {
   Serial.print(APIKEY);
   Serial.print("\"}\n");
 }
+void checkStatus() {
+  Serial.print("{\"M\":\"status\"}\n");
+  lastCheckStatusTime = millis();
+}
 void processMessage(aJsonObject *msg){
   aJsonObject* method = aJson.getObjectItem(msg, "M");
   aJsonObject* content = aJson.getObjectItem(msg, "C");     
@@ -62,6 +71,11 @@ void processMessage(aJsonObject *msg){
   String C=content->valuestring;
   String F_C_ID=client_id->valuestring;
   if(M=="WELCOME TO BIGIOT"){
+    checkOut();
+    delay(1000);
+    checkIn();
+  }
+  if(M=="connected"){
     checkOut();
     delay(1000);
     checkIn();
