@@ -4,7 +4,7 @@ String DEVICEID="1"; // 你的设备ID=======
 String APIKEY="493822592"; // 设备密码==
 String INPUTID="1";//接口ID==============
 //=======================================
-const int LM35 = 0;// LED正极连接针脚4
+const int LM35 = 0;// LM35 Vout 接 A0
 unsigned long lastCheckInTime = 0; //记录上次报到时间
 unsigned long lastUpdateTime = 0;//记录上次上传数据时间
 const unsigned long postingInterval = 40000; // 每隔40秒向服务器报到一次
