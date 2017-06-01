@@ -22,7 +22,7 @@ void loop() {
   if(millis() - lastCheckInTime > postingInterval || lastCheckInTime==0) {
     checkIn();
   }
-  if((millis() - lastUpdateTime > updateInterval) && isCheckIn) {
+  if(millis() - lastUpdateTime > updateInterval) {
     float val;//定义变量
     int dat;//定义变量
     dat=analogRead( LM35 );// 读取传感器的模拟值并赋值给dat
