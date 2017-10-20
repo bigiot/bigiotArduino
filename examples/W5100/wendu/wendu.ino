@@ -1,3 +1,8 @@
+
+/*
+ *注意 ：Arduino IDE版本请使用1.6.5-1.8.2
+ */
+
 #include <SPI.h>
 #include <Ethernet.h>
 #include <aJSON.h>

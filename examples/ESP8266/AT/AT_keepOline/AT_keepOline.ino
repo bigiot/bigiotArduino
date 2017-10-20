@@ -1,3 +1,8 @@
+
+/*
+ *注意 ：Arduino IDE版本请使用1.6.5-1.8.2
+ */
+
 #include <aJSON.h>
 //=============  此处必须修该============
 String DEVICEID="xxx"; // 你的设备编号   ==
