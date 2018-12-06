@@ -1,109 +1,116 @@
-
 /*
- *注意 ：Arduino IDE版本请使用1.6.5-1.8.2
- */
+  注意 ：Arduino IDE版本请使用1.6.5-1.8.2
+  ESP8266模块在接Arduino之前请确定透传稳定性，在串口查看ESP8266是否能多次收到WELCOME TO BIGIOT,
+  能多次收到说明透传稳定且能自动重连。
+  时间：2018.12.4
+  作者：www.bigiot.net
+*/
 
 #include <aJSON.h>
 //=============  此处必须修该============
-String DEVICEID="1"; // 你的设备编号   ==
-String  APIKEY="493822592"; // 设备密码==
+String DEVICEID = "1"; // 你的设备ID   ==
+String  APIKEY = "493822592"; //设备密码=
 //=======================================
+
 const int LED = 4;// LED正极连接针脚4
-unsigned long lastCheckInTime = 0; //记录上次报到时间
+unsigned long lastCheckStatusTime = 0; //记录上次报到时间
 const unsigned long postingInterval = 40000; // 每隔40秒向服务器报到一次
-String inputString = "";
-boolean stringComplete = false;
-boolean CONNECT = true; 
-char* parseJson(char *jsonString);
+unsigned long checkoutTime = 0;//登出时间
+
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
-  delay(5000);
+  delay(5000);//等一会儿ESP8266
 }
 void loop() {
-  if(millis() - lastCheckInTime > postingInterval || lastCheckInTime==0) {
+  //每一定时间查询一次设备在线状态，同时替代心跳
+  if (millis() - lastCheckStatusTime > postingInterval) {
+    checkStatus();
+  }
+  //checkout 50ms 后 checkin
+  if ( checkoutTime != 0 && millis() - checkoutTime > 50 ) {
     checkIn();
+    checkoutTime = 0;
   }
-  serialEvent();
-    if (stringComplete) {
-      inputString.trim();
-      //Serial.println(inputString);
-      if(inputString=="CLOSED"){
-        Serial.println("connect closed!");
-        CONNECT=false;        
-      }else{
-        int len = inputString.length()+1;    
-        if(inputString.startsWith("{") && inputString.endsWith("}")){
-          char jsonString[len];
-          inputString.toCharArray(jsonString,len);
-          aJsonObject *msg = aJson.parse(jsonString);
-          processMessage(msg);
-          aJson.deleteItem(msg);          
-        }
-      }      
-      // clear the string:
-      inputString = "";
-      stringComplete = false;    
+  //读取串口信息
+  while (Serial.available()) {
+    String inputString = Serial.readStringUntil('\n');
+    //检测json数据是否完整
+    int jsonBeginAt = inputString.indexOf("{");
+    int jsonEndAt = inputString.lastIndexOf("}");
+    if (jsonBeginAt != -1 && jsonEndAt != -1) {
+      //净化json数据
+      inputString = inputString.substring(jsonBeginAt, jsonEndAt + 1);
+      int len = inputString.length() + 1;
+      char jsonString[len];
+      inputString.toCharArray(jsonString, len);
+      aJsonObject *msg = aJson.parse(jsonString);
+      processMessage(msg);
+      aJson.deleteItem(msg);
+    }
   }
 }
+//设备登录
+//{"M":"checkin","ID":"xx1","K":"xx2"}\n
 void checkIn() {
-  if (!CONNECT) {
-    Serial.print("+++");
-    delay(500);  
-    Serial.print("\r\n"); 
-    delay(1000);
-    Serial.print("AT+RST\r\n"); 
-    delay(6000);
-    CONNECT=true;
-    lastCheckInTime=0;
-  }
-  else{
-    Serial.print("{\"M\":\"checkin\",\"ID\":\"");
-    Serial.print(DEVICEID);
-    Serial.print("\",\"K\":\"");
-    Serial.print(APIKEY);
-    Serial.print("\"}\r\n");
-    lastCheckInTime = millis();   
-  }
+  Serial.print("{\"M\":\"checkin\",\"ID\":\"");
+  Serial.print(DEVICEID);
+  Serial.print("\",\"K\":\"");
+  Serial.print(APIKEY);
+  Serial.print("\"}\r\n");
 }
-void processMessage(aJsonObject *msg){
+//处理网络接收到到指令，执行相关动作
+void processMessage(aJsonObject *msg) {
   aJsonObject* method = aJson.getObjectItem(msg, "M");
-  aJsonObject* content = aJson.getObjectItem(msg, "C");     
-  aJsonObject* client_id = aJson.getObjectItem(msg, "ID");  
-  //char* st = aJson.print(msg);
   if (!method) {
     return;
   }
-    //Serial.println(st); 
-    //free(st);
-    String M=method->valuestring;
-    String C=content->valuestring;
-    String F_C_ID=client_id->valuestring;
-    if(M=="say"){
-      if(C=="play"){
-        digitalWrite(LED, HIGH);
-        sayToClient(F_C_ID,"LED on!");    
-      }
-      if(C=="stop"){
-        digitalWrite(LED, LOW);
-        sayToClient(F_C_ID,"LED off!");    
-      }
+  String M = method->valuestring;
+  if (M == "WELCOME TO BIGIOT") {
+    checkOut();
+    checkoutTime = millis();
+    return;
+  }
+  if (M == "connected") {
+    checkIn();
+  }
+  if (M == "say") {
+    aJsonObject* content = aJson.getObjectItem(msg, "C");
+    aJsonObject* client_id = aJson.getObjectItem(msg, "ID");
+    String C = content->valuestring;
+    String F_C_ID = client_id->valuestring;
+    if (C == "play") {
+      digitalWrite(LED, HIGH);
+      say(F_C_ID, "LED on!");
     }
-}
-void sayToClient(String client_id, String content){
-  Serial.print("{\"M\":\"say\",\"ID\":\"");
-  Serial.print(client_id);
-  Serial.print("\",\"C\":\"");
-  Serial.print(content);
-  Serial.print("\"}\r\n");
-  lastCheckInTime = millis();
-}
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char)Serial.read();
-    inputString += inChar;
-    if (inChar == '\n') {
-      stringComplete = true;
+    if (C == "stop") {
+      digitalWrite(LED, LOW);
+      say(F_C_ID, "LED off!");
     }
   }
+}
+
+//发送say指令，用于设备与用户、设备与设备间通讯
+//{"M":"say","ID":"xx1","C":"xx2","SIGN":"xx3"}\n
+void say(String ID, String c) {
+  Serial.print("{\"M\":\"say\",\"ID\":\"");
+  Serial.print(ID);
+  Serial.print("\",\"C\":\"");
+  Serial.print(c);
+  Serial.print("\"}\r\n");
+}
+//强制设备下线，用消除设备掉线延时
+//{"M":"checkout","ID":"xx1","K":"xx2"}\n
+void checkOut() {
+  Serial.print("{\"M\":\"checkout\",\"ID\":\"");
+  Serial.print(DEVICEID);
+  Serial.print("\",\"K\":\"");
+  Serial.print(APIKEY);
+  Serial.print("\"}\n");
+}
+//查询设备在线状态
+//{"M":"status"}\n
+void checkStatus() {
+  Serial.print("{\"M\":\"status\"}\n");
+  lastCheckStatusTime = millis();
 }

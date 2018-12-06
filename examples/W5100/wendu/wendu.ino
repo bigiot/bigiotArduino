@@ -1,6 +1,8 @@
-
 /*
- *注意 ：Arduino IDE版本请使用1.6.5-1.8.2
+ * 注意 ：Arduino IDE版本请使用1.6.5-1.8.2
+ * W5100的网线与路由器相连
+ * 修改时间：2018.12.4
+ * 作者：www.bigiot.net
  */
 
 #include <SPI.h>
@@ -14,7 +16,7 @@ const String INPUTID="1";
 const int LM35 = 0;//LM35 pin
 byte mac[] = {0x00, 0x1D, 0x72, 0x82, 0x35, 0x9D};
 EthernetClient client ;
-IPAddress ip(192, 168, 0, 177);//local IP
+IPAddress ip(192, 168, 0, 177);//本地局域网IP，可不填，多次无法连接路由器时，可以尝试修改
 //IPAddress server(121,42,180,30);
 char server[] = "www.bigiot.net";  
 int port= 8181 ;

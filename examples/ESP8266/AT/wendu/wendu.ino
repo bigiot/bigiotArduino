@@ -19,9 +19,10 @@ const unsigned long updateInterval = 5000; // 数据上传间隔时间5秒
 unsigned long checkoutTime = 0;//登出时间
 void setup() {
   Serial.begin(115200);
-  delay(3000);
+  delay(5000);//等一会儿ESP8266
 }
 void loop() {
+  //每一定时间查询一次设备在线状态，同时替代心跳
   if (millis() - lastCheckStatusTime > postingInterval) {
     checkStatus();
   }
@@ -30,6 +31,7 @@ void loop() {
     checkIn();
     checkoutTime = 0;
   }
+  //每隔一定时间上传一次数据
   if (millis() - lastUpdateTime > updateInterval) {
     float val;//定义变量
     int dat;//定义变量
@@ -39,6 +41,7 @@ void loop() {
     update1(DEVICEID, INPUTID, val);
     lastUpdateTime = millis();
   }
+  //读取串口信息
   while (Serial.available()) {
     String inputString = Serial.readStringUntil('\n');
     //检测json数据是否完整
@@ -56,6 +59,8 @@ void loop() {
     }
   }
 }
+//设备登录
+//{"M":"checkin","ID":"xx1","K":"xx2"}\n
 void checkIn() {
   Serial.print("{\"M\":\"checkin\",\"ID\":\"");
   Serial.print(DEVICEID);
@@ -63,6 +68,8 @@ void checkIn() {
   Serial.print(APIKEY);
   Serial.print("\"}\n");
 }
+//强制设备下线，用消除设备掉线延时
+//{"M":"checkout","ID":"xx1","K":"xx2"}\n
 void checkOut() {
   Serial.print("{\"M\":\"checkout\",\"ID\":\"");
   Serial.print(DEVICEID);
@@ -70,10 +77,14 @@ void checkOut() {
   Serial.print(APIKEY);
   Serial.print("\"}\n");
 }
+
+//查询设备在线状态
+//{"M":"status"}\n
 void checkStatus() {
   Serial.print("{\"M\":\"status\"}\n");
   lastCheckStatusTime = millis();
 }
+
 //处理来自ESP8266透传的数据
 void processMessage(aJsonObject *msg) {
   aJsonObject* method = aJson.getObjectItem(msg, "M");
