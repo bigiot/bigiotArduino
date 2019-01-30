@@ -1,3 +1,5 @@
+--use sjson
+_G.cjson = sjson
 --modify DEVICEID1 INPUTID APIKEY DEVICEID2
 local DEVICEID1 = "112"
 local INPUTID="162"
@@ -7,21 +9,28 @@ local HONGWAI = 5
 local trig = gpio.trig
 local host = host or "www.bigiot.net"
 local port = port or 8181
+local isConnect = false
 gpio.mode(HONGWAI,gpio.INT)
 cu = net.createConnection(net.TCP)
 cu:connect(port, host)
 cu:on("receive", function(cu, c) 
-print(c)
+  print(c)
+  isConnect = true
 end)
 ok1, s1 = pcall(cjson.encode, {M="checkin",ID=DEVICEID1,K=APIKEY})
 if ok1 then
   print(s1)
-  cu:send( s1.."\n" )
+  if isConnect then
+		cu:send( s1.."\n" )
+	end
 else
   print("failed to encode1!")
 end
-tmr.alarm(1, 40000, 1, function()
-    cu:send( s1.."\n" )
+-- use checkin as heartbeat
+tmr.alarm(1, 50000, 1, function()
+    if isConnect then
+			cu:send( s1.."\n" )
+		end
   end)
 local function sendmessage(level)
 	if level == gpio.HIGH then
@@ -31,7 +40,9 @@ local function sendmessage(level)
 		if ok2 and ok3 then
 		  print(s2)
 		  print(s3)
-		  cu:send( s2.."\n"..s3.."\n" )
+			if isConnect then
+				cu:send( s2.."\n"..s3.."\n" )
+			end
 		else
 		  print("failed to encode2.3!")
 		end
@@ -42,7 +53,9 @@ local function sendmessage(level)
 		if ok4 and ok5 then
 		  print(s4)
 		  print(s5)
-		  cu:send( s4.."\n"..s5.."\n" )
+			if isConnect then
+				cu:send( s4.."\n"..s5.."\n" )
+			end
 		else
 		  print("failed to encode4.5!")
 		end
